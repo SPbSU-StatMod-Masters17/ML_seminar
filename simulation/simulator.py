@@ -128,9 +128,13 @@ def get_seed(params):
     params.seed = list(params.seed)
 
 
+def prepare_output_dir(params):
+    smart_makedirs(params.outdir)
+
+
 def main(*args, **kwargs):
     params = parse_cmd(*args, **kwargs)
-    smart_makedirs(params.outdir)
+    prepare_output_dir(params)
     get_seed(params)
     dump_params(params)
 
