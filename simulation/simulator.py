@@ -5,6 +5,8 @@ import errno
 import numpy as np
 from scipy.stats import norm, expon
 
+current_dir = os.path.dirname(os.path.realpath(__file__))
+
 
 def smart_makedirs(dirname):
     try:
@@ -54,12 +56,12 @@ def parse_cmd(*args, **kwargs):
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--outdir",
                         type=str,
-                        required=True,
+                        default=current_dir,
                         help="Output directory")
     parser.add_argument("-p", "--plot",
                         action='store_const',
                         const=True,
-                        help = "Plot series")
+                        help="Plot series")
     parser.add_argument("-N", "--number_series",
                         type=int,
                         default=1,
@@ -87,15 +89,54 @@ def parse_cmd(*args, **kwargs):
                         type=float,
                         default=0.2,
                         help="Intensity of moments of trend change")
+    parser.add_argument("--seed",
+                        type=int,
+                        default=np.random.randint(low=0,
+                                                  high=100000,
+                                                  size=1)[0],
+                        help="Random seed")
+
     return parser.parse_args()
+
+
+def dump_params(params):
+    import json
+    with open(os.path.join(params.outdir, "params.txt"), 'w') as f:
+        json.dump(vars(params), f)
+
+
+def plot(params, all_series):
+    import plotly.graph_objs as go
+    from plotly.offline import plot
+    traces = []
+    for series in all_series:
+        trace = go.Scatter(x=range(1, params.series_len + 1),
+                           y=series,
+                           mode='lines')
+        traces.append(trace)
+    layout = {"title": "Series"}
+    fig = {"data": traces, "layout": layout}
+    plot(fig)
+
+
+def get_seed(params):
+    if params.seed is not None:
+        np.random.seed(params.seed)
+    params.seed = np.random.randint(low=0,
+                                    high=100000,
+                                    size=params.number_series)
+    params.seed = list(params.seed)
 
 
 def main(*args, **kwargs):
     params = parse_cmd(*args, **kwargs)
     smart_makedirs(params.outdir)
+    get_seed(params)
+    dump_params(params)
 
     all_series = []
     for _ in xrange(params.number_series):
+        np.random.seed(params.seed[_])
         wiener = get_wiener(N=params.series_len,
                             sigma=params.var_noise)
         trend = get_trend(N=params.series_len,
@@ -109,17 +150,7 @@ def main(*args, **kwargs):
         np.savetxt(os.path.join(params.outdir, str(_) + ".txt"), series)
 
     if params.plot:
-        import plotly.graph_objs as go
-        from plotly.offline import plot
-        traces = []
-        for series in all_series:
-            trace = go.Scatter(x=range(1, params.series_len + 1),
-                               y=series,
-                               mode='lines')
-            traces.append(trace)
-        layout = {"title": "Series"}
-        fig = {"data": traces, "layout": layout}
-        plot(fig)
+        plot(params, all_series)
 
 
 if __name__ == "__main__":
