@@ -62,7 +62,7 @@ def parse_cmd(*args, **kwargs):
                         help = "Plot series")
     parser.add_argument("-N", "--number_series",
                         type=int,
-                        default=5,
+                        default=1,
                         help="Total number of series to simulate")
     parser.add_argument("-l", "--series_len",
                         type=int,
@@ -117,7 +117,8 @@ def main(*args, **kwargs):
                                y=series,
                                mode='lines')
             traces.append(trace)
-        fig = {"data": traces}
+        layout = {"title": "Series"}
+        fig = {"data": traces, "layout": layout}
         plot(fig)
 
 
