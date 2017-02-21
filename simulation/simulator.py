@@ -1,7 +1,17 @@
 import argparse
+import os.path
+import errno
 
 import numpy as np
 from scipy.stats import norm, expon
+
+
+def smart_makedirs(dirname):
+    try:
+        os.makedirs(dirname)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+            raise exc
 
 
 def get_wiener(N, sigma):
@@ -42,9 +52,9 @@ def get_series(trend, wiener):
 
 def parse_cmd(*args, **kwargs):
     parser = argparse.ArgumentParser()
-    parser.add_argument("-o", "--output_dir",
+    parser.add_argument("-o", "--outdir",
                         type=str,
-                        required=False, # TODO
+                        required=True,
                         help="Output directory")
     parser.add_argument("-p", "--plot",
                         action='store_const',
@@ -82,6 +92,7 @@ def parse_cmd(*args, **kwargs):
 
 def main(*args, **kwargs):
     params = parse_cmd(*args, **kwargs)
+    smart_makedirs(params.outdir)
 
     all_series = []
     for _ in xrange(params.number_series):
@@ -95,6 +106,7 @@ def main(*args, **kwargs):
                           tr_start=params.trend_start)
         series = get_series(trend, wiener)
         all_series.append(series)
+        np.savetxt(os.path.join(params.outdir, str(_) + ".txt"), series)
 
     if params.plot:
         import plotly.graph_objs as go
