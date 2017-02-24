@@ -4,15 +4,10 @@ import os
 
 import errno
 import numpy as np
-from simulator import *
 
+from simulation.simulator import SeriesSampler
 
-def smart_makedirs(dirname):
-    try:
-        os.makedirs(dirname)
-    except OSError as exc:
-        if exc.errno != errno.EEXIST:
-            raise exc
+from help_scripts.helpers import ensure_dir_exists
 
 
 def parse_cmd(*args, **kwargs):
@@ -31,10 +26,12 @@ def parse_cmd(*args, **kwargs):
                         type=int,
                         default=1,
                         help="Total number of series to simulate")
+
     parser.add_argument("-l", "--series_len",
                         type=int,
                         default=1000)
-    parser.add_argument("-t", "--trend_start",
+
+    parser.add_argument("-b", "--trend_start",
                         type=float,
                         default=100,
                         help="Starting point for trend")
@@ -52,7 +49,7 @@ def parse_cmd(*args, **kwargs):
                         help="Varience of noise")
     parser.add_argument("-e", "--exp_lamb",
                         type=float,
-                        default=14,
+                        default=30,
                         help="Intensity of moments of trend change")
     parser.add_argument("--seed",
                         type=int,
@@ -81,7 +78,7 @@ def get_seed(params):
 
 
 def prepare_output_dir(params):
-    smart_makedirs(params.outdir)
+    ensure_dir_exists(params.outdir)
 
 
 def plot_series(series):
