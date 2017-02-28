@@ -1,7 +1,7 @@
 import scipy.stats
 import numpy as np
 
-from evaluator.quality_evaluator import QualityEvaluator
+from help_scripts.evaluator.quality_evaluator import QualityEvaluator
 
 
 class WilcoxonDetector(object):
