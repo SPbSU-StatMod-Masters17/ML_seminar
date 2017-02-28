@@ -4,7 +4,7 @@ import os.path
 import errno
 
 import numpy as np
-`import simulation.simulator
+import help_scripts.simulation.simulator
 from enum import Enum
 
 

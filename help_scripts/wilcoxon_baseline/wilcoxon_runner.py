@@ -5,8 +5,7 @@ import os
 
 import errno
 import numpy as np
-
-from wilcoxon_baseline.wilcoxon_trend_estimator import GridSearch, WilcoxonDetector
+from help_scripts.wilcoxon_baseline.wilcoxon_trend_estimator import GridSearch, WilcoxonDetector
 
 
 def main(*args, **kwargs):
