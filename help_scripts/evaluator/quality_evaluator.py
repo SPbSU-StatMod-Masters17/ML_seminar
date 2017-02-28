@@ -24,6 +24,7 @@ class QualityEvaluator(object):
 
         buy_indices = []
         sell_indices = []
+        money = []
 
         for i in range(0, len(decisions)):
             if decisions[i] == 1:
@@ -35,9 +36,10 @@ class QualityEvaluator(object):
                     gain += self.__pack_size * self.__prices[i]
                     state = State.WITHOUT_STOCKS
                     sell_indices.append(i)
+            money.append(gain)
 
         if state == State.WITH_STOCKS:
             gain += self.__pack_size * self.__prices[-1]
             sell_indices.append(len(decisions) - 1)
 
-        return {"gain": gain, "buy_indices": buy_indices, "sell_indices": sell_indices}
+        return {"gain": gain, "buy_indices": buy_indices, "sell_indices": sell_indices, "money": money}

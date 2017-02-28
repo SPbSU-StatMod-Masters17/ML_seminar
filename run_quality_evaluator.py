@@ -12,6 +12,20 @@ from help_scripts.evaluator.quality_evaluator import QualityEvaluator
 from help_scripts.helpers import ensure_dir_exists
 
 
+def plot_money(learn, test, file_name):
+    import plotly.graph_objs as go
+    from plotly.offline import plot
+
+    learn_time = [x for x in range(0, len(learn))]
+    test_time = [x for x in range(0, len(test))]
+
+    traces = [go.Scatter(x=learn_time, y=learn, mode='lines', name="Learn money"),
+              go.Scatter(x=test_time, y=test, mode='lines', name="Test money")]
+    layout = {"title": "Series"}
+    fig = {"data": traces, "layout": layout}
+    plot(fig, filename=file_name)
+
+
 def plot(series, trend, noise, bought_indices, sell_indices, file_name):
     import plotly.graph_objs as go
     from plotly.offline import plot
@@ -19,9 +33,12 @@ def plot(series, trend, noise, bought_indices, sell_indices, file_name):
     time = [x for x in range(0, len(series))]
     traces = [go.Scatter(x=time, y=series, mode='lines', name="series"),
               go.Scatter(x=time, y=trend, mode='lines', name="trend"),
-              go.Scatter(x=time, y=noise, mode='lines', name="noise"),
-              go.Scatter(x=bought_indices, y=np.take(series, bought_indices), mode="markers", name="bought"),
-              go.Scatter(x=sell_indices, y=np.take(series, sell_indices), mode="markers", name="sell")]
+              go.Scatter(x=time, y=noise, mode='lines', name="noise")]
+    if len(bought_indices) > 0:
+        traces.append(
+            go.Scatter(x=bought_indices, y=np.take(series, bought_indices), mode="markers", name="bought"))
+    if len(sell_indices) > 0:
+        traces.append(go.Scatter(x=sell_indices, y=np.take(series, sell_indices), mode="markers", name="sell"))
 
     layout = {"title": "Series"}
     fig = {"data": traces, "layout": layout}
@@ -72,7 +89,7 @@ def parse_cmd(*args, **kwargs):
                         help="Varience of tangence for trend")
     parser.add_argument("-s", "--var_noise",
                         type=float,
-                        default=1,
+                        default=10,
                         help="Varience of noise")
     parser.add_argument("-e", "--exp_lamb",
                         type=float,
@@ -151,25 +168,36 @@ def main(*args, **kwargs):
 
         learn_evaluator = QualityEvaluator(learn)
         test_evaluator = QualityEvaluator(test)
-        full_evaluator = QualityEvaluator(series)
 
         learn_decisions = np.loadtxt(os.path.join(fold_dir, "learn.decisions"))
         test_decisions = np.loadtxt(os.path.join(fold_dir, "test.decisions"))
-        all_decisions = np.concatenate((learn_decisions, test_decisions))
 
-        learn_scores.append(learn_evaluator.evaluate(learn_decisions)["gain"])
-        test_scores.append(test_evaluator.evaluate(test_decisions)["gain"])
+        learn_evaluation = learn_evaluator.evaluate(learn_decisions)
+        learn_scores.append(learn_evaluation["gain"])
+        test_evaluation = test_evaluator.evaluate(test_decisions)
 
-        full_evaluations = full_evaluator.evaluate(all_decisions)
-        plot(series,  sample["trend"], sample["noise"],
-             full_evaluations["buy_indices"], full_evaluations["sell_indices"],
+        buy_indices = np.concatenate(
+            (learn_evaluation["buy_indices"], [x + len(learn) for x in test_evaluation["buy_indices"]]))
+        sell_indices = np.concatenate(
+            (learn_evaluation["sell_indices"], [x + len(learn) for x in test_evaluation["sell_indices"]]))
+        test_scores.append(test_evaluation["gain"])
+
+        plot(series, sample["trend"], sample["noise"],
+             buy_indices, sell_indices,
              "fold{__id:03d}.html".format(__id=i))
+
+        plot_money(learn_evaluation["money"],
+                   test_evaluation["money"],
+                   "money_fold{__id:03d}.html".format(__id=i))
 
         print("Learn score on fold #{__id:03d}: {__score}".format(__id=i, __score=learn_scores[-1]))
         print("Test score on fold #{__id:03d}: {__score}".format(__id=i, __score=test_scores[-1]))
 
     np.savetxt("learn.scores", learn_scores)
     np.savetxt("test.scores", test_scores)
+
+    print("Mean learn score {__score}".format(__score=np.mean(learn_scores)))
+    print("Mean test score {__score}".format(__score=np.mean(test_scores)))
 
 
 if __name__ == "__main__":
