@@ -12,18 +12,18 @@ from help_scripts.evaluator.quality_evaluator import QualityEvaluator
 from help_scripts.helpers import ensure_dir_exists
 
 
-def plot(params, all_series):
+def plot(series, bought_indices, sell_indices, file_name):
     import plotly.graph_objs as go
     from plotly.offline import plot
-    traces = []
-    for series in all_series:
-        trace = go.Scatter(x=range(1, params.series_len + 1),
-                           y=series,
-                           mode='lines')
-        traces.append(trace)
+
+    time = [x for x in range(0, len(series))]
+    traces = [go.Scatter(x=time,  y=series, mode='lines', name="series"),
+              go.Scatter(x=bought_indices, y=np.take(series, bought_indices), mode="markers", name="bought"),
+              go.Scatter(x=sell_indices, y=np.take(series, sell_indices), mode="markers", name="sell")]
+
     layout = {"title": "Series"}
     fig = {"data": traces, "layout": layout}
-    plot(fig)
+    plot(fig, filename=file_name)
 
 
 def get_seed(params):
@@ -150,9 +150,17 @@ def main(*args, **kwargs):
 
         learn_evaluator = QualityEvaluator(learn)
         test_evaluator = QualityEvaluator(test)
+        full_evaluator = QualityEvaluator(series)
 
-        learn_scores.append(learn_evaluator.evaluate(np.loadtxt(os.path.join(fold_dir, "learn.decisions"))))
-        test_scores.append(test_evaluator.evaluate(np.loadtxt(os.path.join(fold_dir, "test.decisions"))))
+        learn_decisions = np.loadtxt(os.path.join(fold_dir, "learn.decisions"))
+        test_decisions = np.loadtxt(os.path.join(fold_dir, "test.decisions"))
+        all_decisions = np.concatenate((learn_decisions, test_decisions))
+
+        learn_scores.append(learn_evaluator.evaluate(learn_decisions)["gain"])
+        test_scores.append(test_evaluator.evaluate(test_decisions)["gain"])
+
+        full_evaluations = full_evaluator.evaluate(all_decisions)
+        plot(series, full_evaluations["buy_indices"], full_evaluations["sell_indices"], "fold{__id:03d}".format(__id=i))
 
         print("Learn score on fold #{__id:03d}: {__score}".format(__id=i, __score=learn_scores[-1]))
         print("Test score on fold #{__id:03d}: {__score}".format(__id=i, __score=test_scores[-1]))

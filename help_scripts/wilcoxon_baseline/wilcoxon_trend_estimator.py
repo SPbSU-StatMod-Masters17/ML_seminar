@@ -51,6 +51,7 @@ class WilcoxonDetector(object):
         detector = WilcoxonDetector(threshold=threshold, sample_size=sample_size, window=window_size, stripe=stripe)
         decisions = []
         has_stocks = False
+
         for sample in series:
             detector.add_sample(sample)
             decision = detector.current_trend()
@@ -76,7 +77,7 @@ class GridSearch(object):
     def __calc_score(self, sample_size, window_size, stripe, threshold):
         decisions = WilcoxonDetector.make_decisions(self.__series, threshold=threshold, sample_size=sample_size,
                                                     window_size=window_size, stripe=stripe)
-        return self.__evaluator.evaluate(decisions)
+        return self.__evaluator.evaluate(decisions)["gain"]
 
     def search(self,
                min_sample_size=20, max_sample_size=45, sample_stripe=5,

@@ -22,16 +22,22 @@ class QualityEvaluator(object):
     def evaluate(self, decisions):
         gain = 0
 
+        buy_indices = []
+        sell_indices = []
+
         for i in range(0, len(decisions)):
             if decisions[i] == 1:
                 if self.__state == State.WITHOUT_STOCKS:
                     gain -= self.__pack_size * self.__prices[i]
                     self.__state = State.WITH_STOCKS
+                    buy_indices.append(i)
                 else:
                     gain += self.__pack_size * self.__prices[i]
                     self.__state = State.WITHOUT_STOCKS
+                    sell_indices.append(i)
 
         if self.__state == State.WITH_STOCKS:
-            gain += self.__pack_size * self.__prices[i]
+            gain += self.__pack_size * self.__prices[-1]
+            sell_indices.append(len(decisions) - 1)
 
-        return gain
+        return {"gain": gain, "buy_indices": buy_indices, "sell_indices": sell_indices}
