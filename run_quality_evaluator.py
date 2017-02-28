@@ -12,12 +12,14 @@ from help_scripts.evaluator.quality_evaluator import QualityEvaluator
 from help_scripts.helpers import ensure_dir_exists
 
 
-def plot(series, bought_indices, sell_indices, file_name):
+def plot(series, trend, noise, bought_indices, sell_indices, file_name):
     import plotly.graph_objs as go
     from plotly.offline import plot
 
     time = [x for x in range(0, len(series))]
-    traces = [go.Scatter(x=time,  y=series, mode='lines', name="series"),
+    traces = [go.Scatter(x=time, y=series, mode='lines', name="series"),
+              go.Scatter(x=time, y=trend, mode='lines', name="trend"),
+              go.Scatter(x=time, y=noise, mode='lines', name="noise"),
               go.Scatter(x=bought_indices, y=np.take(series, bought_indices), mode="markers", name="bought"),
               go.Scatter(x=sell_indices, y=np.take(series, sell_indices), mode="markers", name="sell")]
 
@@ -70,7 +72,7 @@ def parse_cmd(*args, **kwargs):
                         help="Varience of tangence for trend")
     parser.add_argument("-s", "--var_noise",
                         type=float,
-                        default=0.1,
+                        default=1,
                         help="Varience of noise")
     parser.add_argument("-e", "--exp_lamb",
                         type=float,
@@ -133,9 +135,8 @@ def main(*args, **kwargs):
         fold_dir = os.path.join(current_dir, fold_dir_name(i))
         ensure_dir_exists(fold_dir)
 
-        series = sampler.simulate(params.learn_size + params.test_size,
-                                  params.trend_start,
-                                  seed=params.seed[i])
+        sample = sampler.simulate(params.learn_size + params.test_size, params.trend_start, seed=params.seed[i])
+        series = sample["series"]
 
         learn = series[0:params.learn_size]
         test = series[params.learn_size:]
@@ -160,7 +161,9 @@ def main(*args, **kwargs):
         test_scores.append(test_evaluator.evaluate(test_decisions)["gain"])
 
         full_evaluations = full_evaluator.evaluate(all_decisions)
-        plot(series, full_evaluations["buy_indices"], full_evaluations["sell_indices"], "fold{__id:03d}".format(__id=i))
+        plot(series,  sample["trend"], sample["noise"],
+             full_evaluations["buy_indices"], full_evaluations["sell_indices"],
+             "fold{__id:03d}.html".format(__id=i))
 
         print("Learn score on fold #{__id:03d}: {__score}".format(__id=i, __score=learn_scores[-1]))
         print("Test score on fold #{__id:03d}: {__score}".format(__id=i, __score=test_scores[-1]))

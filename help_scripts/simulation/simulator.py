@@ -45,7 +45,4 @@ class SeriesSampler(object):
             np.random.seed(seed)
         noise = self.__sample_wiener(series_size)
         trend = self.__sample_trend(series_size, trend_bias)
-        return np.maximum(trend + noise, 0)
-
-
-
+        return {"series": np.maximum(trend + noise, 0), "trend": trend, "noise": noise}
