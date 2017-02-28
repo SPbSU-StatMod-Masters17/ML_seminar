@@ -8,8 +8,8 @@ import numpy as np
 
 from simulation.simulator import SeriesSampler
 
-from help_scripts.evaluator.quality_evaluator import QualityEvaluator
-from help_scripts.helpers import ensure_dir_exists
+from evaluator.quality_evaluator import QualityEvaluator
+from helpers import ensure_dir_exists
 
 
 def plot(params, all_series):

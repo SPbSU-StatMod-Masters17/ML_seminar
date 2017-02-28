@@ -6,7 +6,7 @@ import os
 import errno
 import numpy as np
 
-from help_scripts.wilcoxon_baseline.wilcoxon_trend_estimator import GridSearch, WilcoxonDetector
+from wilcoxon_baseline.wilcoxon_trend_estimator import GridSearch, WilcoxonDetector
 
 
 def main(*args, **kwargs):
@@ -14,7 +14,7 @@ def main(*args, **kwargs):
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", "--threshold-grid",
                         type=int,
-                        default=20,
+                        default=25,
                         help="Threshold grid size")
 
     args = parser.parse_args()
@@ -37,9 +37,6 @@ def main(*args, **kwargs):
                                                      window_size=best_params["window_size"],
                                                      stripe=best_params["stripe"])[-len(test):]
     np.savetxt("test.decisions", test_decisions)
-
-
-
 
 
 if __name__ == "__main__":

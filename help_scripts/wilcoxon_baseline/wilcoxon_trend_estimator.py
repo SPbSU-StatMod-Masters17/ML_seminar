@@ -1,7 +1,7 @@
 import scipy.stats
 import numpy as np
 
-from help_scripts.evaluator.quality_evaluator import QualityEvaluator
+from evaluator.quality_evaluator import QualityEvaluator
 
 
 class WilcoxonDetector(object):
@@ -39,6 +39,7 @@ class WilcoxonDetector(object):
             return 0
 
         test_pvalue = scipy.stats.wilcoxon(diffs).pvalue
+        # test_pvalue = scipy.stats.ttest_1samp(diffs, 0).pvalue
 
         if test_pvalue < self.__threshold:
             return np.sign(np.sum(diffs))
@@ -78,8 +79,8 @@ class GridSearch(object):
         return self.__evaluator.evaluate(decisions)
 
     def search(self,
-               min_sample_size=15, max_sample_size=40, sample_stripe=5,
-               min_threshold=1e-5, max_threshold=1e-4, thresholds_count=50,
+               min_sample_size=20, max_sample_size=45, sample_stripe=5,
+               min_threshold=8e-6, max_threshold=2e-4, thresholds_count=50,
                min_window=1, max_window=2,
                min_stripe=1, max_stripe=2
                ):
