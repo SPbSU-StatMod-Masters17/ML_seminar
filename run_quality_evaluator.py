@@ -6,7 +6,7 @@ import os.path
 import errno
 import numpy as np
 
-from simulation.simulator import SeriesSampler
+from help_scripts.simulation.simulator import SeriesSampler
 
 from help_scripts.evaluator.quality_evaluator import QualityEvaluator
 from help_scripts.helpers import ensure_dir_exists

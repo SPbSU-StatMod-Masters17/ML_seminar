@@ -6,7 +6,6 @@ import errno
 import numpy as np
 
 from help_scripts.simulation.simulator import SeriesSampler
-
 from help_scripts.helpers import ensure_dir_exists
 
 
