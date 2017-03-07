@@ -1,0 +1,6 @@
+Dependencies:
+scipy, numpy (install anaconda or use pip)
+plotly (install via pip) for drawing plot in run_simulator.py (OPTIONAL)
+
+Script usage:
+./<script_name>.py -h (e. g. “./wilcoxon_runner.py -h”)
