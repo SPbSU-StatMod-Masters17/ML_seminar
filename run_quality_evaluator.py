@@ -162,8 +162,9 @@ def main(*args, **kwargs):
         np.savetxt(learn_file, learn)
         np.savetxt(os.path.join(fold_dir, "test.txt"), test)
 
+        cmd = os.path.abspath(params.learner)
         os.chdir(fold_dir)
-        run_script(params.learner)
+        run_script(cmd)
         os.chdir(current_dir)
 
         learn_evaluator = QualityEvaluator(learn)
