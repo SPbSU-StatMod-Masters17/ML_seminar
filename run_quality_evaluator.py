@@ -35,8 +35,11 @@ def plot(series, trend, noise, bought_indices, sell_indices, file_name):
               go.Scatter(x=time, y=trend, mode='lines', name="trend"),
               go.Scatter(x=time, y=noise, mode='lines', name="noise")]
     if len(bought_indices) > 0:
-        traces.append(
-            go.Scatter(x=bought_indices, y=np.take(series, bought_indices), mode="markers", name="bought"))
+        try:
+            traces.append(
+                go.Scatter(x=bought_indices, y=np.take(series, bought_indices), mode="markers", name="bought"))
+        except Exception as e:
+            pass
     if len(sell_indices) > 0:
         traces.append(go.Scatter(x=sell_indices, y=np.take(series, sell_indices), mode="markers", name="sell"))
 
@@ -64,16 +67,16 @@ def parse_cmd(*args, **kwargs):
 
     parser.add_argument("-N", "--folds",
                         type=int,
-                        default=10,
+                        default=1,
                         help="Total number of series to simulate")
 
     parser.add_argument("-l", "--learn_size",
                         type=int,
-                        default=1000)
+                        default=10000)
 
     parser.add_argument("-t", "--test_size",
                         type=int,
-                        default=1000)
+                        default=10000)
 
     parser.add_argument("-b", "--trend_start",
                         type=float,
@@ -89,7 +92,7 @@ def parse_cmd(*args, **kwargs):
                         help="Varience of tangence for trend")
     parser.add_argument("-s", "--var_noise",
                         type=float,
-                        default=10,
+                        default=5,
                         help="Varience of noise")
     parser.add_argument("-e", "--exp_lamb",
                         type=float,
@@ -161,6 +164,8 @@ def main(*args, **kwargs):
         learn_file = os.path.join(fold_dir, "learn.txt")
         np.savetxt(learn_file, learn)
         np.savetxt(os.path.join(fold_dir, "test.txt"), test)
+
+        np.savetxt(os.path.join(fold_dir, "test.trend"), sample["trend"][params.learn_size:])
 
         cmd = os.path.abspath(params.learner)
         os.chdir(fold_dir)
