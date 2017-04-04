@@ -110,7 +110,7 @@ def main(*args, **kwargs):
     for i in range(params.number_series):
         series = sampler.simulate(params.series_len, params.trend_start, seed=params.seed[i])["series"]
         all_series.append(series)
-        np.savetxt(os.path.join(params.outdir, ".txt"), series)
+        np.savetxt(os.path.join(params.outdir, "{__id:03d}.txt".format(__id=i)), series)
 
     if params.plot:
         plot_series(all_series)
